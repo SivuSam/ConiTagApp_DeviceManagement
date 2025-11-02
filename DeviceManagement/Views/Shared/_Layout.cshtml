@@ -1,0 +1,138 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DeviceManagement</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DeviceManagement.styles.css" asp-append-version="true" />
+
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            color: #0d6efd !important;
+        }
+
+        .nav-link {
+            margin-right: 15px;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 10px 0;
+        }
+
+        @@media (min-width: 576px) {
+            .nav-item.dropdown:hover > .dropdown-menu {
+                display: block;
+            }
+
+            .nav-item.dropdown > .dropdown-menu {
+                margin-top: 0;
+            }
+        }
+
+        .btn-link.nav-link {
+            color: #000;
+            text-decoration: none;
+        }
+
+            .btn-link.nav-link:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-light shadow-sm">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-laptop-code"></i> ConiTag
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-sm-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-house"></i> Home</a>
+                        </li>
+
+                        
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="About"><i class="fa-solid fa-circle-info"></i> About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Contact"><i class="fa-solid fa-envelope"></i> Contact</a>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center gap-2" asp-controller="Home" asp-action="Dashboard" title="Dashboard">
+                                    <i class="fa-solid fa-gauge text-primary"></i>
+                                    <span class="fw-semibold text-dark">Dashboard</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Notifications" title="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Index"><i class="fa-solid fa-user"></i> Profile</a>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" asp-controller="Authorization" asp-action="Logout" class="d-inline">
+                                    <button type="submit" class="nav-link btn btn-link" style="padding: 0; border: none;">
+                                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Authorization" asp-action="Login"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Authorization" asp-action="Register"><i class="fa-solid fa-user-plus"></i> Register</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mt-3">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer text-center border-top text-muted">
+        <div class="container">
+            &copy; @DateTime.Now.Year - DeviceManagement 
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

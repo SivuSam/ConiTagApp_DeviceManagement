@@ -1,0 +1,180 @@
+﻿@model Asset
+
+@{
+    ViewData["Title"] = "Create Asset";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Bootstrap & Font Awesome -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<!-- Page Heading -->
+<h2 class="mb-4"><i class="fa-solid fa-plus-circle me-2"></i>Create New Asset</h2>
+
+<!-- Form Container -->
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation container min-vh-100 py-4" novalidate>
+
+    <!-- Submit Buttons at Top -->
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check me-1"></i> Submit
+            </button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">
+                <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Fields in Two Columns -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label asp-for="AssetTag" class="form-label"><i class="fa-solid fa-barcode me-1"></i>Asset Tag</label>
+                <div class="input-group">
+                    <input asp-for="AssetTag" id="assetTagInput" class="form-control" maxlength="50" required autocomplete="off" />
+                    <button type="button" class="btn btn-outline-secondary" id="startScannerBtn" title="Scan Barcode">
+                        <i class="fa-solid fa-camera"></i> Scan
+                    </button>
+                </div>
+                <div class="invalid-feedback">
+                    Please enter the asset tag or scan the barcode.
+                </div>
+            </div>
+
+            <!-- Barcode scanner container -->
+            <div id="barcodeScanner" class="mb-3" style="display:none;">
+                <video id="scannerVideo" width="100%" height="200" style="border:1px solid #ddd;"></video>
+                <button type="button" class="btn btn-danger mt-2" id="stopScannerBtn">Stop Scanner</button>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AssetName" class="form-label"><i class="fa-solid fa-box me-1"></i>Asset Name</label>
+                <input asp-for="AssetName" class="form-control" maxlength="100" required />
+                <div class="invalid-feedback">Please enter the asset name.</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Room" class="form-label"><i class="fa-solid fa-door-open me-1"></i>Room</label>
+                <input asp-for="Room" class="form-control" maxlength="50" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Condition" class="form-label"><i class="fa-solid fa-check-circle me-1"></i>Condition</label>
+                <input asp-for="Condition" class="form-control" maxlength="50" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Location" class="form-label"><i class="fa-solid fa-location-dot me-1"></i>Location</label>
+                <input asp-for="Location" class="form-control" maxlength="100" />
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"><i class="fa-solid fa-note-sticky me-1"></i>Notes</label>
+                <textarea asp-for="Notes" class="form-control" maxlength="500" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Verified" class="form-label"><i class="fa-solid fa-check me-1"></i>Verified</label>
+                <select asp-for="Verified" class="form-select">
+                    <option value="N" selected>No</option>
+                    <option value="Y">Yes</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Picture" class="form-label"><i class="fa-solid fa-camera me-1"></i>Upload Picture (or take photo)</label>
+                <input asp-for="Picture" type="file" class="form-control" accept="image/*" capture="environment" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Footer Slide-in -->
+<footer class="fixed-bottom bg-dark text-white py-2 px-4 d-flex justify-content-start align-items-center animate-slide-in">
+    <i class="fa-solid fa-rocket me-2"></i><strong>2025 Project</strong>
+</footer>
+
+<!-- Styles -->
+<style>
+    body {
+        padding-bottom: 60px; /* Ensure form content isn't hidden by footer */
+    }
+
+    .animate-slide-in {
+        animation: slideInLeft 0.5s ease-out forwards;
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+  
+</style>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+<script>
+    // Bootstrap form validation
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // Barcode scanner logic
+    const startBtn = document.getElementById('startScannerBtn');
+    const stopBtn = document.getElementById('stopScannerBtn');
+    const scannerContainer = document.getElementById('barcodeScanner');
+    const assetTagInput = document.getElementById('assetTagInput');
+
+    startBtn.addEventListener('click', () => {
+        scannerContainer.style.display = 'block';
+
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#scannerVideo'),
+                constraints: {
+                    facingMode: "environment"
+                }
+            },
+            decoder: {
+                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
+            }
+        }, err => {
+            if (err) {
+                console.error(err);
+                alert('Error starting barcode scanner: ' + err);
+                return;
+            }
+            Quagga.start();
+        });
+
+        Quagga.onDetected(data => {
+            const code = data.codeResult.code;
+            assetTagInput.value = code;
+            Quagga.stop();
+            scannerContainer.style.display = 'none';
+        });
+    });
+
+    stopBtn.addEventListener('click', () => {
+        Quagga.stop();
+        scannerContainer.style.display = 'none';
+    });
+</script>

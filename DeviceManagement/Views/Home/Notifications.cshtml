@@ -1,0 +1,32 @@
+﻿@model IEnumerable<DeviceManagement.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<h2 class="mb-4">My Notifications</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info"></i> You have no notifications at this time.
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var notification in Model)
+        {
+            <div class="list-group-item d-flex justify-content-between align-items-start @(!notification.IsRead ? "bg-light" : "")">
+                <div class="ms-2 me-auto">
+                    <div class="fw-bold">@notification.User</div>
+                    <small class="text-muted">@notification.CreatedAt.ToString("dd MMM yyyy - hh:mm tt")</small>
+                    <p class="mb-1">@notification.Message</p>
+                </div>
+                @if (!notification.IsRead)
+                {
+                    <span class="badge bg-primary rounded-pill">New</span>
+                }
+            </div>
+        }
+    </div>
+}

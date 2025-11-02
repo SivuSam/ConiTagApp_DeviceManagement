@@ -1,0 +1,112 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<DeviceManagement.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var user = await UserManager.GetUserAsync(User);
+    var roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
+    var welcomeName = user != null ? user.FullName ?? user.UserName : "Guest";
+}
+
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: 0.2s ease-in-out;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-card i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #0d6efd;
+        }
+
+    .section-title {
+        margin-top: 2rem;
+        font-weight: 600;
+    }
+</style>
+
+<h2>Welcome, @welcomeName!</h2>
+
+<div class="dashboard-grid">
+
+    @* 🔹 Show only to Admin *@
+    @if (roles.Contains("Admin"))
+    {
+        <div class="dashboard-card">
+            <i class="fa-solid fa-laptop"></i>
+            <h5>Users</h5>
+            <a class="btn btn-outline-primary mt-2" asp-controller="Admin" asp-action="Index">Manage Users and Assets</a>
+        </div>
+
+        
+    }
+
+    @* 🔹 Show only to Agent or AssetOfficer *@
+    @if (roles.Contains("Agent") || roles.Contains("AssetOfficer"))
+    {
+        <div class="dashboard-card">
+            <i class="fa-solid fa-file-contract"></i>
+            <h5>My Active Assets</h5>
+            <a class="btn btn-outline-primary mt-2" asp-controller="Asset" asp-action="Index">View My Assets</a>
+        </div>
+
+       
+    }
+
+    @* 🔹 Notifications visible to all *@
+
+    <div class="dashboard-card">
+        <i class="fa-solid fa-laptop"></i>
+        <h5>Add New Asset</h5>
+        <a class="btn btn-outline-primary mt-2" asp-controller="Asset" asp-action="Create">Add New Asset</a>
+    </div>
+
+    <div class="dashboard-card">
+        <i class="fa-solid fa-file-contract"></i>
+        <h5>My Active Assets</h5>
+        <a class="btn btn-outline-primary mt-2" asp-controller="Asset" asp-action="Index">View My Assets</a>
+    </div>
+
+    <div class="dashboard-card">
+        <i class="fa-solid fa-user-circle"></i>
+        <h5>My Profile</h5>
+        <a class="btn btn-outline-secondary mt-2" asp-controller="Account" asp-action="Index">View Profile</a>
+    </div>
+    <div class="dashboard-card">
+        <i class="fa-solid fa-bell"></i>
+        <h5>Notifications</h5>
+        @if (ViewBag.Notifications != null && ((IList<DeviceManagement.Models.Notification>)ViewBag.Notifications).Count > 0)
+        {
+            <ul class="list-unstyled small mt-2">
+                @foreach (var note in (IList<DeviceManagement.Models.Notification>)ViewBag.Notifications)
+                {
+                    <li>@note.Message</li>
+                }
+            </ul>
+            <a class="btn btn-outline-info mt-2" asp-action="Notifications">View All</a>
+        }
+        else
+        {
+            <p class="text-muted small">No new notifications.</p>
+        }
+    </div>
+
+
+</div>

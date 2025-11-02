@@ -1,0 +1,265 @@
+﻿@using DeviceManagement.ViewModels
+
+@model List<UserViewModel>
+
+
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<h2 class="my-4">User Management</h2>
+<a href="@Url.Action("REPORT", "Admin")" class="btn btn-primary">
+    <i class="fa-solid fa-file-pdf me-1"></i> Download Report
+</a>
+<table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th style="width: 60px;">#</th>
+            <th>User</th>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Company / Student</th>
+            <th>Status</th>
+            <th style="width: 250px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            int index = 1;
+            foreach (var user in Model)
+            {
+                var isLocked = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow;
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>
+                        <a href="javascript:void(0);" class="ms-2 user-details-link" 
+                           data-bs-toggle="modal" data-bs-target="#userDetailsModal"
+                           data-username="@user.UserName"
+                           data-email="@user.Email"
+                           data-fullname="@user.FullName"
+                           data-company="@((!string.IsNullOrWhiteSpace(user.CompanyName) && user.CompanyName.ToLower() != "null") ? user.CompanyName : "")"
+                           data-studentnumber="@((!string.IsNullOrWhiteSpace(user.StudentNumber) && user.StudentNumber.ToLower() != "null") ? user.StudentNumber : "")"
+                           data-address="@user.Address"
+                           data-cellphone="@user.CellphoneNumber"
+                           data-gender="@user.Gender"
+                           data-businessnumber="@user.BusinessNumber"
+                           data-dob="@(user.DateOfBirth?.ToString("yyyy-MM-dd") ?? "")"
+                           data-said="@user.SAIdNumber"
+                           data-monthlyearnings="@user.MonthlyEarnings"
+                           data-ownedlaptops="@user.OwnedLaptopsCount"
+                           data-notifications="@user.NotificationsCount"
+                           data-lockoutend="@(user.LockoutEnd?.UtcDateTime.ToString("yyyy-MM-dd HH:mm") ?? "")"
+                           style="cursor:pointer; text-decoration:none; color:inherit;">
+                            @user.UserName
+                        </a>
+                    </td>
+                    <td>@user.Email</td>
+                    <td>@user.FullName</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(user.CompanyName) && user.CompanyName.ToLower() != "null")
+                        {
+                            <span>@user.CompanyName</span>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(user.StudentNumber) && user.StudentNumber.ToLower() != "null")
+                        {
+                            <span>Student #@user.StudentNumber</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </td>
+                    <td>
+                        @if (isLocked)
+                        {
+                            <span class="badge bg-danger">Locked</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                    </td>
+                    <td>
+                        <form method="post" asp-action="LockUser" asp-route-id="@user.Id" style="display:inline;" onsubmit="return confirm('Are you sure you want to lock this user?');">
+                            @if (!isLocked)
+                            {
+                                <button type="submit" class="btn btn-outline-danger btn-sm me-1" title="Lock User">
+                                    <i class="fa-solid fa-lock"></i>
+                                </button>
+                            }
+                        </form>
+                        <form method="post" asp-action="UnlockUser" asp-route-id="@user.Id" style="display:inline;" onsubmit="return confirm('Are you sure you want to unlock this user?');">
+                            @if (isLocked)
+                            {
+                                <button type="submit" class="btn btn-outline-success btn-sm me-1" title="Unlock User">
+                                    <i class="fa-solid fa-lock-open"></i>
+                                </button>
+                            }
+                        </form>
+                        <!-- Edit button triggers Edit Modal -->
+                        <button type="button" class="btn btn-outline-primary btn-sm me-1 edit-user-btn" title="Edit User"
+                            data-bs-toggle="modal" data-bs-target="#editUserModal"
+                            data-id="@user.Id"
+                            data-fullname="@user.FullName"
+                            data-address="@user.Address"
+                            data-cellphone="@user.CellphoneNumber"
+                            data-gender="@user.Gender"
+                            data-company="@user.CompanyName">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <form method="post" asp-action="DeleteUser" asp-route-id="@user.Id" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete User">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                index++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">No users found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- User Details Modal (same as before) -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true" style="--bs-modal-width: 600px;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="userDetailsModalLabel"><i class="fa-solid fa-user"></i> User Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="cursor:pointer;"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row gy-3">
+                    <div class="col-md-6"><strong>Username:</strong> <span id="modalUsername"></span></div>
+                    <div class="col-md-6"><strong>Email:</strong> <span id="modalEmail"></span></div>
+                    <div class="col-md-6"><strong>Full Name:</strong> <span id="modalFullName"></span></div>
+                    <div class="col-md-6"><strong>Company Name:</strong> <span id="modalCompany"></span></div>
+                    <div class="col-md-6"><strong>Student Number:</strong> <span id="modalStudentNumber"></span></div>
+                    <div class="col-md-6"><strong>Address:</strong> <span id="modalAddress"></span></div>
+                    <div class="col-md-6"><strong>Cellphone Number:</strong> <span id="modalCellphone"></span></div>
+                    <div class="col-md-6"><strong>Gender:</strong> <span id="modalGender"></span></div>
+                    <div class="col-md-6"><strong>Business Number:</strong> <span id="modalBusinessNumber"></span></div>
+                    <div class="col-md-6"><strong>Date of Birth:</strong> <span id="modalDOB"></span></div>
+                    <div class="col-md-6"><strong>SA ID Number:</strong> <span id="modalSAID"></span></div>
+                    <div class="col-md-6"><strong>Monthly Earnings:</strong> <span id="modalMonthlyEarnings"></span></div>
+                    <div class="col-md-6"><strong>Owned Laptops:</strong> <span id="modalOwnedLaptops"></span></div>
+                    <div class="col-md-6"><strong>Notifications:</strong> <span id="modalNotifications"></span></div>
+                    <div class="col-md-12"><strong>Account Status:</strong> <span id="modalLockoutEnd"></span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="cursor:pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true" style="--bs-modal-width: 600px;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-action="EditUser" id="editUserForm">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editUserModalLabel"><i class="fa-solid fa-pen-to-square"></i> Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="cursor:pointer;"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId" name="Id" />
+                    <div class="mb-3">
+                        <label for="editFullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="editFullName" name="FullName" maxlength="100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="editAddress" name="Address" maxlength="200" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCellphoneNumber" class="form-label">Cellphone Number</label>
+                        <input type="tel" class="form-control" id="editCellphoneNumber" name="CellphoneNumber" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editGender" class="form-label">Gender</label>
+                        <select class="form-select" id="editGender" name="Gender">
+                            <option value="">Select Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCompanyName" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="editCompanyName" name="CompanyName" maxlength="100" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="cursor:pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    document.querySelectorAll('.user-details-link').forEach(link => {
+        link.addEventListener('click', function () {
+            const modal = document.getElementById('userDetailsModal');
+            document.getElementById('modalUsername').textContent = this.dataset.username || 'N/A';
+            document.getElementById('modalEmail').textContent = this.dataset.email || 'N/A';
+            document.getElementById('modalFullName').textContent = this.dataset.fullname || 'N/A';
+            document.getElementById('modalCompany').textContent = this.dataset.company || 'N/A';
+            document.getElementById('modalStudentNumber').textContent = this.dataset.studentnumber || 'N/A';
+            document.getElementById('modalAddress').textContent = this.dataset.address || 'N/A';
+            document.getElementById('modalCellphone').textContent = this.dataset.cellphone || 'N/A';
+            document.getElementById('modalGender').textContent = this.dataset.gender || 'N/A';
+            document.getElementById('modalBusinessNumber').textContent = this.dataset.businessnumber || 'N/A';
+            document.getElementById('modalDOB').textContent = this.dataset.dob || 'N/A';
+            document.getElementById('modalSAID').textContent = this.dataset.said || 'N/A';
+            document.getElementById('modalMonthlyEarnings').textContent = this.dataset.monthlyearnings ? parseFloat(this.dataset.monthlyearnings).toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : 'N/A';
+            document.getElementById('modalOwnedLaptops').textContent = this.dataset.ownedlaptops || '0';
+            document.getElementById('modalNotifications').textContent = this.dataset.notifications || '0';
+
+            const lockoutEnd = this.dataset.lockoutend;
+            const modalLockoutEnd = document.getElementById('modalLockoutEnd');
+            if (lockoutEnd) {
+                modalLockoutEnd.innerHTML = `<span class="badge bg-danger">Locked until ${lockoutEnd} UTC</span>`;
+            } else {
+                modalLockoutEnd.innerHTML = `<span class="badge bg-success">Active</span>`;
+            }
+        });
+    });
+
+   
+    document.querySelectorAll('.edit-user-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const id = this.dataset.id || '';
+            const fullname = this.dataset.fullname || '';
+            const address = this.dataset.address || '';
+            const cellphone = this.dataset.cellphone || '';
+            const gender = this.dataset.gender || '';
+            const company = this.dataset.company || '';
+
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editFullName').value = fullname;
+            document.getElementById('editAddress').value = address;
+            document.getElementById('editCellphoneNumber').value = cellphone;
+            document.getElementById('editGender').value = gender;
+            document.getElementById('editCompanyName').value = company;
+        });
+    });
+</script>

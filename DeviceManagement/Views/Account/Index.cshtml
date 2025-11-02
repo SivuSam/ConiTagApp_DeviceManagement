@@ -1,0 +1,110 @@
+﻿@model DeviceManagement.Models.ApplicationUser
+
+<h2 class="mb-4 text-center">My Profile</h2>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">@Model.FullName's Profile</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
+                    <li class="list-group-item"><strong>Phone:</strong> @Model.CellphoneNumber</li>
+                    <li class="list-group-item"><strong>Gender:</strong> @Model.Gender</li>
+                    <li class="list-group-item"><strong>Address:</strong> @Model.Address</li>
+                    <li class="list-group-item"><strong>Date of Birth:</strong> @(Model.DateOfBirth?.ToShortDateString() ?? "-")</li>
+                    <li class="list-group-item"><strong>SA ID Number:</strong> @Model.SAIdNumber</li>
+                    @if (!string.IsNullOrEmpty(Model.StudentNumber) && Model.StudentNumber != "30")
+                    {
+                        <li class="list-group-item"><strong>Student Number:</strong> @Model.StudentNumber</li>
+                    }
+                    else
+                    {
+                        <li class="list-group-item"><strong>Company:</strong> @Model.CompanyName</li>
+                        <li class="list-group-item"><strong>Business Number:</strong> @Model.BusinessNumber</li>
+                    }
+                </ul>
+
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    Change Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="changePasswordForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordLabel">Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="changePasswordMsg" class="alert d-none"></div>
+
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const msgBox = document.getElementById('changePasswordMsg');
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const response = await fetch('/Account/ChangePassword', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+            });
+
+            const result = await response.json();
+
+            msgBox.classList.remove('d-none', 'alert-danger', 'alert-success');
+            msgBox.classList.add(result.success ? 'alert-success' : 'alert-danger');
+            msgBox.innerText = result.success ? "Password changed successfully!" : result.message;
+
+            if (result.success) {
+                setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                    modal.hide();
+                    document.getElementById('changePasswordForm').reset();
+                    msgBox.classList.add('d-none');
+                }, 2000);
+            }
+        });
+    </script>
+}

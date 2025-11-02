@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Contact <span style="color:#007bff;">Holding Tech SA</span></h2>
+    <p class="text-center text-muted mb-5">We are proudly South African and expanding to every university, college, and town.</p>
+
+    <div class="row">
+        <!-- Contact Info -->
+        <div class="col-md-6 mb-4">
+            <h5>Head Office</h5>
+            <p><i class="fas fa-map-marker-alt me-2"></i> QWaqwa, Gauteng, South Africa</p>
+            <p><i class="fas fa-phone me-2"></i> +27 10 123 4567</p>
+            <p><i class="fas fa-envelope me-2"></i> contact@holdingtechsa.co.za</p>
+
+            <h6 class="mt-4">System Developer</h6>
+            <p><strong>team b</strong></p>
+            <p>Email: <a href="mailto:samkelisojam285@gmail.com">s</a></p>
+            <p>Phone: 076 831 3287</p>
+            <p>Look after error and improvement of system</p>
+
+            <h6 class="mt-4">Business Hours</h6>
+            <p>Monday – Friday: 08:00 – 17:00</p>
+            <p>Saturday: 09:00 – 13:00</p>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="col-md-6">
+            <form id="contactForm">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter your name" required />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required />
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Your Message</label>
+                    <textarea class="form-control" id="message" rows="4" placeholder="What would you like to ask?" required></textarea>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress mb-3 d-none" id="progressBar">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         role="progressbar" style="width: 100%"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const progressBar = document.getElementById('progressBar');
+
+            if (!name || !email || !message) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            // Show progress bar
+            progressBar.classList.remove('d-none');
+
+            // Compose mailto link
+            const toEmail = "samkelisojam285@gmail.com";
+            const subject = encodeURIComponent("Help Request from Contact Page");
+            const bodyLines = [
+                `Dear Mr. Samkeliso,`,
+                ``,
+                `Please help with this:`,
+                ``,
+                `Name: ${name}`,
+                `Email: ${email}`,
+                `Message: ${message}`,
+                ``,
+                `Thank you.`
+            ];
+            const body = encodeURIComponent(bodyLines.join("\n"));
+
+            // Open email client
+            window.location.href = `mailto:${toEmail}?subject=${subject}&body=${body}`;
+
+            // Hide progress bar after a short delay
+            setTimeout(() => {
+                progressBar.classList.add('d-none');
+                this.reset();
+            }, 2000);
+        });
+    </script>
+}

@@ -26,7 +26,8 @@ namespace DeviceManagement.APIs
             string? imageName = null;
             if (model.Picture != null && model.Picture.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "images");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
@@ -48,7 +49,8 @@ namespace DeviceManagement.APIs
                 Location = model.Location,
                 Notes = model.Notes,
                 Verified = "N",
-                PicturePath = imageName,
+                
+                PicturePath = imageName != null ? "/images/" + imageName : null,
                 SubmittedDate = DateTime.Now
             };
 

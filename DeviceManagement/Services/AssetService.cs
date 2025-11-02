@@ -120,6 +120,24 @@ public class AssetService : IAssetService
             await picture.CopyToAsync(fileStream);
         }
 
+        // : Return consistent path format
         return "/images/" + uniqueFileName;
     }
+
+    private string GetPictureUrl(string picturePath)
+    {
+        if (string.IsNullOrEmpty(picturePath))
+            return null;
+
+        // If it's already a full URL, return as is
+        if (picturePath.StartsWith("http"))
+            return picturePath;
+
+        // If it's just a filename, prepend the images path
+        if (!picturePath.StartsWith("/"))
+            return "/images/" + picturePath;
+
+        return picturePath;
+    }
+
 }
